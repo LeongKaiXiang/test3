@@ -1,0 +1,40 @@
+version: '3'
+services:
+  development:
+    restart: always
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./src:/app/src               # Sync current directory to /app
+      - /app/node_modules     # Keep node_modules managed by the container
+    ports:
+      - "3000:3000"
+    environment:
+      - WATCHPACK_POLLING=true  # This is useful for live-reloading on Docker
+  backend:
+    restart: always
+    build: 
+      context: .
+      dockerfile: Dockerfile.prod
+    environment:
+      - PORT=80
+    deploy:
+      replicas: 4
+    networks:
+      - loadbalancing    
+  nginx:
+    restart: always
+    build: 
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "80:80"
+    networks:
+      - loadbalancing
+    depends_on:
+      - backend
+
+networks:
+  loadbalancing:  
+    
